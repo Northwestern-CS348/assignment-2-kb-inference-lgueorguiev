@@ -127,8 +127,9 @@ class KnowledgeBase(object):
         """
         printv("Retracting {!r}", 0, verbose, [fact])
         ####################################################
-        # Student code goes here
-        
+        # When removing fact, you need to remove all support rules and facts
+        # use recursion until it's not supported by anything
+        #useful functions: supported_by, supported_facts, supported_rules, asserted()?
 
 class InferenceEngine(object):
     def fc_infer(self, fact, rule, kb):
@@ -145,4 +146,23 @@ class InferenceEngine(object):
         printv('Attempting to infer from {!r} and {!r} => {!r}', 1, verbose,
             [fact.statement, rule.lhs, rule.rhs])
         ####################################################
-        # Student code goes here
+
+
+        binding = match(fact.statement, rule.lhs[0])
+        if binding and len(rule.lhs) == 1:
+            insert = Fact(instantiate(rule.rhs, binding))
+            fact.supports_facts.append(insert)
+            rule.supports_facts.append(insert)
+            insert.supported_by.append([fact, rule])
+            kb.kb_assert(insert)
+        if binding and len(rule.lhs) > 1:
+            lst = []
+            for index in rule.lhs[1:]:
+                lst.append(instantiate(index, binding))
+            insert = Rule([lst, instantiate(rule.rhs, binding)])
+            fact.supports_rules.append(insert)
+            rule.supports_rules.append(insert)
+            kb.kb_assert(insert)
+
+
+
